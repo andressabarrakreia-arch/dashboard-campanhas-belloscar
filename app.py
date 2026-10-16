@@ -6,17 +6,18 @@ import plotly.express as px
 st.set_page_config(page_title="Painel de Leads - Belloscar", layout="wide")
 st.title("🚗 Painel de Análise de Leads - Belloscar")
 
-# Upload do arquivo
-arquivo = st.file_uploader("Suba a planilha de leads (Excel ou CSV)", type=['xlsx', 'csv'])
+# NOME EXATO DO ARQUIVO QUE VOCÊ SUBIU NO GITHUB
+# Se a sua planilha for CSV, mude para 'leads.csv'
+NOME_ARQUIVO = 'leads.xlsx'
 
-if arquivo:
-    # Lê o arquivo dependendo da extensão
-    if arquivo.name.endswith('.csv'):
-        df = pd.read_csv(arquivo)
+try:
+    # Lê o arquivo automaticamente
+    if NOME_ARQUIVO.endswith('.csv'):
+        df = pd.read_csv(NOME_ARQUIVO)
     else:
-        df = pd.read_excel(arquivo)
+        df = pd.read_excel(NOME_ARQUIVO)
         
-    # Padroniza o nome das colunas para letras minúsculas para evitar erros de digitação
+    # Padroniza o nome das colunas para evitar erros de digitação
     df.columns = df.columns.str.lower().str.strip()
 
     # Converte a coluna de data
@@ -34,7 +35,7 @@ if arquivo:
     mask = (df['data do lead'].dt.date >= data_inicio) & (df['data do lead'].dt.date <= data_fim)
     df_filtrado = df.loc[mask]
 
-    # Padroniza textos para contagem (tudo minúsculo para não dar diferença entre "Sim" e "sim")
+    # Padroniza textos para contagem
     df_filtrado['visita'] = df_filtrado['visita'].astype(str).str.lower().str.strip()
     df_filtrado['status'] = df_filtrado['status'].astype(str).str.lower().str.strip()
 
@@ -76,7 +77,7 @@ if arquivo:
     # Mostra a tabela de conversão
     st.dataframe(conversao, use_container_width=True)
 
-    # Gráfico de barras agrupadas para Visitas vs Sucesso
+    # Gráfico de barras agrupadas
     fig_conv = px.bar(
         conversao, 
         x='origem', 
@@ -85,3 +86,8 @@ if arquivo:
         title="Comparativo de Taxa de Conversão por Origem"
     )
     st.plotly_chart(fig_conv, use_container_width=True)
+
+except FileNotFoundError:
+    st.error(f"⚠️ Arquivo '{NOME_ARQUIVO}' não encontrado! Certifique-se de que você subiu a planilha no GitHub com esse exato nome.")
+except Exception as e:
+    st.error(f"⚠️ Ocorreu um erro ao processar a planilha. Verifique se os nomes das colunas estão corretos: {e}")
